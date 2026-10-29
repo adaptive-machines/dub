@@ -1,7 +1,17 @@
 export const SHORT_DOMAIN = "dub.sh";
 
+// Self-hosted deployments set NEXT_PUBLIC_APP_DOMAIN (e.g. "acme.com") to serve
+// the dashboard on app.<domain> and the API on api.<domain> instead of dub.co.
+const SELF_HOSTED_APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN;
+const PRODUCTION_APP_HOSTNAME = SELF_HOSTED_APP_DOMAIN
+  ? `app.${SELF_HOSTED_APP_DOMAIN}`
+  : "app.dub.co";
+const PRODUCTION_API_HOSTNAME = SELF_HOSTED_APP_DOMAIN
+  ? `api.${SELF_HOSTED_APP_DOMAIN}`
+  : "api.dub.co";
+
 export const API_HOSTNAMES = new Set([
-  "api.dub.co",
+  PRODUCTION_API_HOSTNAME,
   "api-staging.dub.co",
   `api.${SHORT_DOMAIN}`,
   "api.localhost:8888",
@@ -10,21 +20,21 @@ export const API_HOSTNAMES = new Set([
 
 export const API_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://api.dub.co"
+    ? `https://${PRODUCTION_API_HOSTNAME}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
       ? "https://api-staging.dub.co"
       : "http://api.localhost:8888";
 
 export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? `https://${PRODUCTION_APP_HOSTNAME}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
       ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL || "preview.dub.co"}`
       : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? `https://${PRODUCTION_APP_HOSTNAME}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
       ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL || "preview.dub.co"}`
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://localhost:8888";
@@ -34,7 +44,9 @@ export const isAppHostname = (hostname: string) => {
     // pattern of our preview URLs are always "dub-<random-string>.dub.co"
     return hostname.startsWith("dub-") && hostname.endsWith(".dub.co");
   }
-  return new Set(["app.dub.co", "localhost:8888", "localhost"]).has(hostname);
+  return new Set([PRODUCTION_APP_HOSTNAME, "localhost:8888", "localhost"]).has(
+    hostname,
+  );
 };
 
 export const DUB_LOGO = "https://assets.dub.co/logo.png";
